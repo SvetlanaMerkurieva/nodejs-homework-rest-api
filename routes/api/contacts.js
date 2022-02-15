@@ -1,5 +1,5 @@
 const express = require("express");
-const contacts = require("../../models/contacts.json");
+const fs = require("fs/promises");
 const { v4 } = require("uuid");
 const joi = require("joi");
 
@@ -9,9 +9,16 @@ const schema = joi.object({
   phone: joi.number().required(),
 });
 
+const getContacts = async () => {
+  const data = await fs.readFile("./models/contacts.json");
+  const contacts = JSON.parse(data);
+  return contacts;
+};
+
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
+  const contacts = await getContacts();
   res.json({
     status: "success",
     code: 200,
@@ -19,7 +26,8 @@ router.get("/", (req, res) => {
   });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
+  const contacts = await getContacts();
   const { id } = req.params;
   const contact = contacts.find((item) => item.id === id);
   if (!contact) {
@@ -32,7 +40,7 @@ router.get("/:id", (req, res) => {
   res.json({ status: "success", code: 200, data: { result: contact } });
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const validationResult = schema.validate(req.body);
 
   if (validationResult.error) {
@@ -42,6 +50,7 @@ router.post("/", (req, res) => {
     id: v4(),
     ...req.body,
   };
+  const contacts = await getContacts();
   contacts.push(newContact);
   res.status(201).json({
     status: "success",
@@ -50,7 +59,8 @@ router.post("/", (req, res) => {
   });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
+  const contacts = await getContacts();
   const { id } = req.params;
   const contact = contacts.find((item) => item.id === id);
   if (!contact) {
@@ -69,12 +79,13 @@ router.delete("/:id", (req, res) => {
   });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   const validationResult = schema.validate(req.body);
 
   if (validationResult.error) {
     res.status(400).json({ status: validationResult.error.details });
   }
+  const contacts = await getContacts();
   const { id } = req.params;
   const contact = contacts.find((item) => item.id === id);
   if (!contact) {
