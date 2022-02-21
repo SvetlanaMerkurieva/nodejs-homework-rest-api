@@ -1,11 +1,12 @@
 const express = require("express");
 
 const { validation, ctrlWrapper } = require("../../middlewares");
+const { userJoiSchema } = require("../../models/user");
 const { users: ctrl } = require("../../controllers");
 
 const router = express.Router();
 
-router.post("/signup", ctrlWrapper(ctrl.register));
+router.post("/signup", validation(userJoiSchema), ctrlWrapper(ctrl.register));
 
 /*router.get("/:id", ctrlWrapper(ctrl.getById));
 
